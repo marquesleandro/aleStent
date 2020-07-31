@@ -123,14 +123,8 @@ start_time = time()
 
 # Linear and Mini Elements
 if polynomial_option == 0 or polynomial_option == 1 or polynomial_option == 2:
- #mshFileName = 'linearCavity.msh'
- #mshFileName = 'cavity.msh'
- mshFileName = 'time1.msh'
- #mshFileName = 'time2.msh'
- #mshFileName = 'time3.msh'
- #mshFileName = 'time4.msh'
- #mshFileName = 'time5.msh'
- #mshFileName = 'time6.msh'
+ mshFileName = 'CurvedGeoStrut.msh'
+ #mshFileName = 'RealGeoStrut.msh'
 
  pathMSHFile = searchMSH.Find(mshFileName)
  if pathMSHFile == 'File not found':
@@ -154,15 +148,10 @@ if polynomial_option == 0 or polynomial_option == 1 or polynomial_option == 2:
   numPhysical            = mesh.numPhysical 
 
   Re = 100.0
-  Sc = 1.0
+  Sc = 1000.0
   CFL = 0.5
   #dt = float(CFL*minLengthMesh)
-  #dt = 0.1   #SL 
-  #dt = 0.005   #TG
-  #dt = 0.006   #compare with Luis
-  dt = 0.002   #simulation mesh4
-  #dt = 0.001   #simulation mesh5
-  #nt = int(10.0/dt) #10s forced
+  dt = 0.1   #SL 
 
  elif polynomial_option == 2:
   mesh = importMSH.Mini2D(pathMSHFile, mshFileName)
@@ -191,7 +180,10 @@ if polynomial_option == 0 or polynomial_option == 1 or polynomial_option == 2:
 
 # Quad Element
 elif polynomial_option == 3:
- mshFileName = 'quadCavity.msh'
+ mshFileName = 'quadCurvedGeoStrut.msh'
+ #mshFileName = 'quadRealGeoStrut.msh'
+
+
  
  pathMSHFile = searchMSH.Find(mshFileName)
  if pathMSHFile == 'File not found':
@@ -217,14 +209,14 @@ elif polynomial_option == 3:
  Sc = 1.0
  CFL = 0.5
  dt = float(CFL*minLengthMesh)
- #dt = 0.1  
+ dt = 0.1  
 
 
 
 
 # Cubic Element
 elif polynomial_option == 4:
- mshFileName = 'cubicCavity_cubic.msh'
+ mshFileName = 'cubicStent_cubic.msh'
 
  pathMSHFile = searchMSH.Find(mshFileName)
  if pathMSHFile == 'File not found':
@@ -271,24 +263,29 @@ if polynomial_option == 0 or polynomial_option == 1 or polynomial_option == 2:
 
  # Applying vx condition
  xVelocityLHS0 = sps.lil_matrix.copy(M)
- xVelocityBC = benchmarkProblems.linearCavity(numPhysical,numNodes,x,y)
+ xVelocityBC = benchmarkProblems.linearStent(numPhysical,numNodes,x,y)
  xVelocityBC.xVelocityCondition(boundaryEdges,xVelocityLHS0,neighborsNodes)
  benchmark_problem = xVelocityBC.benchmark_problem
 
  # Applying vy condition
  yVelocityLHS0 = sps.lil_matrix.copy(M)
- yVelocityBC = benchmarkProblems.linearCavity(numPhysical,numNodes,x,y)
+ yVelocityBC = benchmarkProblems.linearStent(numPhysical,numNodes,x,y)
  yVelocityBC.yVelocityCondition(boundaryEdges,yVelocityLHS0,neighborsNodes)
 
  # Applying pressure condition
  pressureLHS0 = - sps.lil_matrix.copy(Kxx) - sps.lil_matrix.copy(Kyy)
- pressureBC = benchmarkProblems.linearCavity(numPhysical,numNodes,x,y)
+ pressureBC = benchmarkProblems.linearStent(numPhysical,numNodes,x,y)
  pressureBC.pressureCondition(boundaryEdges,pressureLHS0,neighborsNodes)
 
  # Applying psi condition
  streamFunctionLHS0 = sps.lil_matrix.copy(Kxx) + sps.lil_matrix.copy(Kyy)
- streamFunctionBC = benchmarkProblems.linearCavity(numPhysical,numNodes,x,y)
+ streamFunctionBC = benchmarkProblems.linearStent(numPhysical,numNodes,x,y)
  streamFunctionBC.streamFunctionCondition(boundaryEdges,streamFunctionLHS0,neighborsNodes)
+
+ # Applying concentration condition
+ concentrationLHS0 = (np.copy(M)/dt) + (1.0/(Re*Sc))*np.copy(Kxx) + (1.0/(Re*Sc))*np.copy(Kyy)
+ concentrationBC = benchmarkProblems.linearStent(numPhysical,numNodes,x,y)
+ concentrationBC.concentrationCondition(boundaryEdges,concentrationLHS0,neighborsNodes)
 
  # Applying vorticity condition
  vorticityDirichletNodes = boundaryNodes
@@ -297,22 +294,31 @@ if polynomial_option == 0 or polynomial_option == 1 or polynomial_option == 2:
 
 # Quad Element
 elif polynomial_option == 3:
-
  # Applying vx condition
  xVelocityLHS0 = sps.lil_matrix.copy(M)
- xVelocityBC = benchmarkProblems.quadCavity(numPhysical,numNodes,x,y)
+ xVelocityBC = benchmarkProblems.quadStent(numPhysical,numNodes,x,y)
  xVelocityBC.xVelocityCondition(boundaryEdges,xVelocityLHS0,neighborsNodes)
  benchmark_problem = xVelocityBC.benchmark_problem
 
- # Applying vr condition
+ # Applying vy condition
  yVelocityLHS0 = sps.lil_matrix.copy(M)
- yVelocityBC = benchmarkProblems.quadCavity(numPhysical,numNodes,x,y)
+ yVelocityBC = benchmarkProblems.quadStent(numPhysical,numNodes,x,y)
  yVelocityBC.yVelocityCondition(boundaryEdges,yVelocityLHS0,neighborsNodes)
- 
+
+ # Applying pressure condition
+ pressureLHS0 = - sps.lil_matrix.copy(Kxx) - sps.lil_matrix.copy(Kyy)
+ pressureBC = benchmarkProblems.quadStent(numPhysical,numNodes,x,y)
+ pressureBC.pressureCondition(boundaryEdges,pressureLHS0,neighborsNodes)
+
  # Applying psi condition
  streamFunctionLHS0 = sps.lil_matrix.copy(Kxx) + sps.lil_matrix.copy(Kyy)
- streamFunctionBC = benchmarkProblems.quadCavity(numPhysical,numNodes,x,y)
+ streamFunctionBC = benchmarkProblems.linearStent(numPhysical,numNodes,x,y)
  streamFunctionBC.streamFunctionCondition(boundaryEdges,streamFunctionLHS0,neighborsNodes)
+
+ # Applying concentration condition
+ concentrationLHS0 = (np.copy(M)/dt) + (1.0/(Re*Sc))*np.copy(Kxx) + (1.0/(Re*Sc))*np.copy(Kyy)
+ concentrationBC = benchmarkProblems.quadStent(numPhysical,numNodes,x,y)
+ concentrationBC.concentrationCondition(boundaryEdges,concentrationLHS0,neighborsNodes)
 
  # Applying vorticity condition
  vorticityDirichletNodes = boundaryNodes
@@ -325,6 +331,7 @@ vx = np.copy(xVelocityBC.aux1BC)
 vy = np.copy(yVelocityBC.aux1BC)
 p = np.copy(pressureBC.aux1BC)
 psi = np.copy(streamFunctionBC.aux1BC)
+c = np.copy(concentrationBC.aux1BC)
 w = np.zeros([numNodes,1], dtype = float)
 # ---------------------------------------------------------------------------------
 
@@ -351,7 +358,7 @@ psi = psi[0].reshape((len(psi[0]),1))
 
 
 # -------------------------- Import VTK File ------------------------------------
-#numNodes, numElements, IEN, x, y, vx, vy, w, w, psi = importVTK.vtkFile("/home/marquesleandro/aleCavity/profileResultsData/400Re9999.vtk", polynomial_option)
+#numNodes, numElements, IEN, x, y, vx, vy, w, psi, c = importVTK.vtkFile("/home/marquesleandro/aleStent/profileResultsData/400Re9999.vtk", polynomial_option)
 #----------------------------------------------------------------------------------
 
 
@@ -399,13 +406,13 @@ os.chdir(initial_path)
 # ------------------------ Export VTK File ---------------------------------------
 # Linear and Mini Elements
 if polynomial_option == 0 or polynomial_option == 1 or polynomial_option == 2:   
- save = exportVTK.Linear2D(x,y,IEN,numNodes,numElements,w,w,psi,vx,vy)
+ save = exportVTK.Linear2D(x,y,IEN,numNodes,numElements,w,psi,c,vx,vy)
  save.create_dir(folderResults)
  save.saveVTK(folderResults + str(0))
 
 # Quad Element
 elif polynomial_option == 3:   
- save = exportVTK.Quad2D(x,y,IEN,numNodes,numElements,w,w,psi,vx,vy)
+ save = exportVTK.Quad2D(x,y,IEN,numNodes,numElements,w,psi,c,vx,vy)
  save.create_dir(folderResults)
  save.saveVTK(folderResults + str(0))
 # ---------------------------------------------------------------------------------
@@ -522,58 +529,70 @@ for t in tqdm(range(1, nt)):
    print ' --------------------------------'
    
    start_time = time()
-  
+
    # Linear and Mini Elements
    if polynomial_option == 0 or polynomial_option == 1 or polynomial_option == 2:
- 
     # Applying vx condition
     xVelocityLHS0 = sps.lil_matrix.copy(M)
-    xVelocityBC = benchmarkProblems.linearCavity(numPhysical,numNodes,x,y)
+    xVelocityBC = benchmarkProblems.linearStent(numPhysical,numNodes,x,y)
     xVelocityBC.xVelocityCondition(boundaryEdges,xVelocityLHS0,neighborsNodes)
     benchmark_problem = xVelocityBC.benchmark_problem
    
-    # Applying vr condition
+    # Applying vy condition
     yVelocityLHS0 = sps.lil_matrix.copy(M)
-    yVelocityBC = benchmarkProblems.linearCavity(numPhysical,numNodes,x,y)
+    yVelocityBC = benchmarkProblems.linearStent(numPhysical,numNodes,x,y)
     yVelocityBC.yVelocityCondition(boundaryEdges,yVelocityLHS0,neighborsNodes)
-
+   
     # Applying pressure condition
     pressureLHS0 = - sps.lil_matrix.copy(Kxx) - sps.lil_matrix.copy(Kyy)
-    pressureBC = benchmarkProblems.linearCavity(numPhysical,numNodes,x,y)
-    pressureBC.pressureCondition(boundaryEdges,streamFunctionLHS0,neighborsNodes)
-    
+    pressureBC = benchmarkProblems.linearStent(numPhysical,numNodes,x,y)
+    pressureBC.pressureCondition(boundaryEdges,pressureLHS0,neighborsNodes)
+   
     # Applying psi condition
     streamFunctionLHS0 = sps.lil_matrix.copy(Kxx) + sps.lil_matrix.copy(Kyy)
-    streamFunctionBC = benchmarkProblems.linearCavity(numPhysical,numNodes,x,y)
+    streamFunctionBC = benchmarkProblems.linearStent(numPhysical,numNodes,x,y)
     streamFunctionBC.streamFunctionCondition(boundaryEdges,streamFunctionLHS0,neighborsNodes)
+   
+    # Applying concentration condition
+    concentrationLHS0 = (sps.lil_matrix.copy(M)/dt) + (1.0/(Re*Sc))*sps.lil_matrix.copy(Kxx) + (1.0/(Re*Sc))*sps.lil_matrix.copy(Kyy)
+    concentrationBC = benchmarkProblems.linearStent(numPhysical,numNodes,x,y)
+    concentrationBC.concentrationCondition(boundaryEdges,concentrationLHS0,neighborsNodes)
    
     # Applying vorticity condition
     vorticityDirichletNodes = boundaryNodes
    
    
-  
+   
    # Quad Element
    elif polynomial_option == 3:
- 
     # Applying vx condition
     xVelocityLHS0 = sps.lil_matrix.copy(M)
-    xVelocityBC = benchmarkProblems.quadCavity(numPhysical,numNodes,x,y)
+    xVelocityBC = benchmarkProblems.quadStent(numPhysical,numNodes,x,y)
     xVelocityBC.xVelocityCondition(boundaryEdges,xVelocityLHS0,neighborsNodes)
     benchmark_problem = xVelocityBC.benchmark_problem
    
-    # Applying vr condition
+    # Applying vy condition
     yVelocityLHS0 = sps.lil_matrix.copy(M)
-    yVelocityBC = benchmarkProblems.quadCavity(numPhysical,numNodes,x,y)
+    yVelocityBC = benchmarkProblems.quadStent(numPhysical,numNodes,x,y)
     yVelocityBC.yVelocityCondition(boundaryEdges,yVelocityLHS0,neighborsNodes)
-    
+   
+    # Applying pressure condition
+    pressureLHS0 = - sps.lil_matrix.copy(Kxx) - sps.lil_matrix.copy(Kyy)
+    pressureBC = benchmarkProblems.quadStent(numPhysical,numNodes,x,y)
+    pressureBC.pressureCondition(boundaryEdges,pressureLHS0,neighborsNodes)
+   
     # Applying psi condition
     streamFunctionLHS0 = sps.lil_matrix.copy(Kxx) + sps.lil_matrix.copy(Kyy)
-    streamFunctionBC = benchmarkProblems.quadCavity(numPhysical,numNodes,x,y)
+    streamFunctionBC = benchmarkProblems.linearStent(numPhysical,numNodes,x,y)
     streamFunctionBC.streamFunctionCondition(boundaryEdges,streamFunctionLHS0,neighborsNodes)
+   
+    # Applying concentration condition
+    concentrationLHS0 = (np.copy(M)/dt) + (1.0/(Re*Sc))*np.copy(Kxx) + (1.0/(Re*Sc))*np.copy(Kyy)
+    concentrationBC = benchmarkProblems.quadStent(numPhysical,numNodes,x,y)
+    concentrationBC.concentrationCondition(boundaryEdges,concentrationLHS0,neighborsNodes)
    
     # Applying vorticity condition
     vorticityDirichletNodes = boundaryNodes
-   
    
    end_time = time()
    bc_apply_time_solver = end_time - start_time
@@ -644,61 +663,40 @@ for t in tqdm(range(1, nt)):
  
   # Semi-Lagrangian Scheme
   elif scheme_option == 2:
- 
+   print ' SL scheme '
+   start_SL_time = time()
+
    # Linear Element   
    if polynomial_option == 0 or polynomial_option == 1:
-    print ' SL scheme '
-    start_SL_time = time()
-    w_d = semiLagrangian.Linear2D(numNodes, neighborsElements, IEN, x, y, vxSL, vySL, dt, w)
-    end_SL_time = time()
-    SL_time = end_SL_time - start_SL_time
-    print ' time duration: %.1f seconds' %SL_time
-    print ""
- 
+    w_d, c_d = semiLagrangian.Linear2D(numNodes, neighborsElements, IEN, x, y, vxSL, vySL, dt, w, c)
 
- 
-    A = np.copy(M)/dt
-    vorticityRHS = sps.lil_matrix.dot(A,w_d)
- 
-    vorticityRHS = vorticityRHS + (1.0/Re)*vorticityNeumannVector
-    vorticityRHS = np.multiply(vorticityRHS,vorticityAux2BC)
-    vorticityRHS = vorticityRHS + vorticityDirichletVector
- 
-    w = scipy.sparse.linalg.cg(vorticityLHS,vorticityRHS,w, maxiter=1.0e+05, tol=1.0e-05)
-    w = w[0].reshape((len(w[0]),1))
- 
- 
- 
    # Mini Element   
    elif polynomial_option == 2:
     w_d = semiLagrangian.Mini2D(numNodes, neighborsElements, IEN, z, r, vz, vr, dt, w)
  
-    A = np.copy(Mr)/dt
-    vorticityRHS = sps.lil_matrix.dot(A,w_d)
- 
-    vorticityRHS = vorticityRHS + (1.0/Re)*vorticityNeumannVector
-    vorticityRHS = np.multiply(vorticityRHS,vorticityAux2BC)
-    vorticityRHS = vorticityRHS + vorticityDirichletVector
- 
-    w = scipy.sparse.linalg.cg(vorticityLHS,vorticityRHS,w, maxiter=1.0e+05, tol=1.0e-05)
-    w = w[0].reshape((len(w[0]),1))
- 
- 
- 
    # Quad Element   
    elif polynomial_option == 3:
-    w_d = semiLagrangian.Quad2D(numNodes, neighborsElements, IEN, x, y, vxSL, vySL, dt, w)
+    w_d, c_d = semiLagrangian.Quad2D(numNodes, neighborsElements, IEN, x, y, vxSL, vySL, dt, w, c)
  
-    A = np.copy(M)/dt
-    vorticityRHS = sps.lil_matrix.dot(A,w_d)
+   end_SL_time = time()
+   SL_time = end_SL_time - start_SL_time
+   print ' time duration: %.1f seconds' %SL_time
+   print ""
+
+
+
+
+   # Vorticity Solver 
+   A = np.copy(M)/dt
+   vorticityRHS = sps.lil_matrix.dot(A,w_d)
  
-    vorticityRHS = vorticityRHS + (1.0/Re)*vorticityNeumannVector
-    vorticityRHS = np.multiply(vorticityRHS,vorticityAux2BC)
-    vorticityRHS = vorticityRHS + vorticityDirichletVector
+   vorticityRHS = vorticityRHS + (1.0/Re)*vorticityNeumannVector
+   vorticityRHS = np.multiply(vorticityRHS,vorticityAux2BC)
+   vorticityRHS = vorticityRHS + vorticityDirichletVector
  
-    w = scipy.sparse.linalg.cg(vorticityLHS,vorticityRHS,w, maxiter=1.0e+05, tol=1.0e-05)
-    w = w[0].reshape((len(w[0]),1)) 
-  #----------------------------------------------------------------------------------
+   w = scipy.sparse.linalg.cg(vorticityLHS,vorticityRHS,w, maxiter=1.0e+05, tol=1.0e-05)
+   w = w[0].reshape((len(w[0]),1))
+ 
   end_solver_time = time()
   solver_time = end_solver_time - start_solver_time
   print ' time duration: %.1f seconds' %solver_time
@@ -752,6 +750,34 @@ for t in tqdm(range(1, nt)):
   #----------------------------------------------------------------------------------
  
 
+
+  #---------- Step 7 - Solve the specie transport equation ----------------------
+  c_old = np.copy(c)
+  # Taylor Galerkin Scheme
+  if scheme_option == 1:
+   A = np.copy(M)/dt 
+   concentrationRHS = sps.lil_matrix.dot(A,c) - np.multiply(vx,sps.lil_matrix.dot(Gx,c))\
+         - np.multiply(vy,sps.lil_matrix.dot(Gy,c))\
+         - (dt/2.0)*np.multiply(vx,(np.multiply(vx,sps.lil_matrix.dot(Kxx,c)) + np.multiply(vy,sps.lil_matrix.dot(Kyx,c))))\
+         - (dt/2.0)*np.multiply(vy,(np.multiply(vx,sps.lil_matrix.dot(Kxy,c)) + np.multiply(vy,sps.lil_matrix.dot(Kyy,c))))
+   concentrationRHS = np.multiply(concentrationRHS,concentrationBC.aux2BC)
+   concentrationRHS = concentrationRHS + concentrationBC.dirichletVector
+   c = scipy.sparse.linalg.cg(concentrationBC.LHS,concentrationRHS,c, maxiter=1.0e+05, tol=1.0e-05)
+   c = c[0].reshape((len(c[0]),1))
+ 
+ 
+ 
+  # Semi-Lagrangian Scheme
+  elif scheme_option == 2:
+   A = np.copy(M)/dt
+   concentrationRHS = sps.lil_matrix.dot(A,c_d)
+ 
+   concentrationRHS = np.multiply(concentrationRHS,concentrationBC.aux2BC)
+   concentrationRHS = concentrationRHS + concentrationBC.dirichletVector
+ 
+   c = scipy.sparse.linalg.cg(concentrationBC.LHS,concentrationRHS, c, maxiter=1.0e+05, tol=1.0e-05)
+   c = c[0].reshape((len(c[0]),1))
+  #----------------------------------------------------------------------------------
  
  
  
@@ -762,13 +788,13 @@ for t in tqdm(range(1, nt)):
   start_exportVTK_time = time()
   # Linear and Mini Elements
   if polynomial_option == 0 or polynomial_option == 1 or polynomial_option == 2:   
-   save = exportVTK.Linear2D(x,y,IEN,numNodes,numElements,w,psi,p,vx,vy)
+   save = exportVTK.Linear2D(x,y,IEN,numNodes,numElements,w,psi,c,vx,vy)
    save.create_dir(folderResults)
    save.saveVTK(folderResults + str(t))
  
   # Quad Element
   elif polynomial_option == 3:   
-   save = exportVTK.Quad2D(x,y,IEN,numNodes,numElements,w,psi,p,vx,vy)
+   save = exportVTK.Quad2D(x,y,IEN,numNodes,numElements,w,psi,c,vx,vy)
    save.create_dir(folderResults)
    save.saveVTK(folderResults + str(t))
   # ---------------------------------------------------------------------------------

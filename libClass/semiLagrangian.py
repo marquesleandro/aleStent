@@ -344,7 +344,7 @@ def Quad1D(_npoints, _neighbors_elements, _IEN, _xn, _vx, _dt, _scalar):
 
 
 # 2D Semi-Lagrangian using npoints x nelem to find departure node
-def Linear2D_v2(_npoints, _nelem, _IEN, _xn, _yn, _vx, _vy, _dt, _scalar):
+def Linear2D_v2(_npoints, _nelem, _IEN, _xn, _yn, _vx, _vy, _dt, _scalar1,_scalar2):
  xd = _xn - _vx*_dt
  yd = _yn - _vy*_dt
  
@@ -404,11 +404,17 @@ def Linear2D_v2(_npoints, _nelem, _IEN, _xn, _yn, _vx, _vy, _dt, _scalar):
     N2 = L2
     N3 = L3
 
-    scalar1 = _scalar[v1]
-    scalar2 = _scalar[v2]
-    scalar3 = _scalar[v3]
+    scalar1a = _scalar1[v1]
+    scalar1b = _scalar1[v2]
+    scalar1c = _scalar1[v3]
 
-    scalar[i] = N1*scalar1 + N2*scalar2 + N3*scalar3
+    scalar2a = _scalar2[v1]
+    scalar2b = _scalar2[v2]
+    scalar2c = _scalar2[v3]
+
+
+    scalar1[i] = N1*scalar1a + N2*scalar1b + N3*scalar1c
+    scalar2[i] = N1*scalar2a + N2*scalar2b + N3*scalar2c
     breaking = 1
     break
 
@@ -436,9 +442,10 @@ def Linear2D_v2(_npoints, _nelem, _IEN, _xn, _yn, _vx, _vy, _dt, _scalar):
   if breaking == 0:
    length_min = min(length, key=lambda k:k[1])
    node = length_min[0]
-   scalar[i] = _scalar[node]
+   scalar1[i] = _scalar1[node]
+   scalar2[i] = _scalar2[node]
      
- return scalar  
+ return scalar1, scalar2
 
 
 
@@ -446,11 +453,12 @@ def Linear2D_v2(_npoints, _nelem, _IEN, _xn, _yn, _vx, _vy, _dt, _scalar):
 
 # 2D Semi-Lagrangian using npoints x neighbors_elements to find departure node
 # semilagrangian test ok
-def Linear2D(_npoints, _neighbors_elements, _IEN, _xn, _yn, _vx, _vy, _dt, _scalar):
+def Linear2D(_npoints, _neighbors_elements, _IEN, _xn, _yn, _vx, _vy, _dt, _scalar1, _scalar2):
  xd = _xn - _vx*_dt
  yd = _yn - _vy*_dt
  
- scalar = np.zeros([_npoints,1], dtype = float) 
+ scalar1 = np.zeros([_npoints,1], dtype = float) 
+ scalar2 = np.zeros([_npoints,1], dtype = float) 
  
  for i in range(0,_npoints):
   x = float(xd[i])
@@ -509,11 +517,16 @@ def Linear2D(_npoints, _neighbors_elements, _IEN, _xn, _yn, _vx, _vy, _dt, _scal
      N2 = L2
      N3 = L3
 
-     scalar1 = _scalar[v1]
-     scalar2 = _scalar[v2]
-     scalar3 = _scalar[v3]
+     scalar1a = _scalar1[v1]
+     scalar1b = _scalar1[v2]
+     scalar1c = _scalar1[v3]
 
-     scalar[i] = N1*scalar1 + N2*scalar2 + N3*scalar3
+     scalar2a = _scalar2[v1]
+     scalar2b = _scalar2[v2]
+     scalar2c = _scalar2[v3]
+
+     scalar1[i] = N1*scalar1a + N2*scalar1b + N3*scalar1c
+     scalar2[i] = N1*scalar2a + N2*scalar2b + N3*scalar2c
 
      breaking = 1
      break
@@ -556,13 +569,14 @@ def Linear2D(_npoints, _neighbors_elements, _IEN, _xn, _yn, _vx, _vy, _dt, _scal
 
     # outside domain
     if node == node1 and breaking == 0:
-     scalar[i] = _scalar[node]
+     scalar1[i] = _scalar1[node]
+     scalar2[i] = _scalar2[node]
      
      breaking = 1
      break
 
 
- return scalar
+ return scalar1, scalar2
 
 
 
@@ -840,11 +854,12 @@ def Mini2D(_npoints, _neighbors_elements, _IEN, _xn, _yn, _vx, _vy, _dt, _scalar
 
 # 2D Semi-Lagrangian using npoints x neighbors_elements to find departure node
 # semilagrangian test ok
-def Quad2D(_npoints, _neighbors_elements, _IEN, _xn, _yn, _vx, _vy, _dt, _scalar):
+def Quad2D(_npoints, _neighbors_elements, _IEN, _xn, _yn, _vx, _vy, _dt, _scalar1, _scalar2):
  xd = _xn - _vx*_dt
  yd = _yn - _vy*_dt
  
- scalar = np.zeros([_npoints,1], dtype = float) 
+ scalar1 = np.zeros([_npoints,1], dtype = float) 
+ scalar2 = np.zeros([_npoints,1], dtype = float) 
  
  for i in range(0,_npoints):
   x = float(xd[i])
@@ -910,22 +925,42 @@ def Quad2D(_npoints, _neighbors_elements, _IEN, _xn, _yn, _vx, _vy, _dt, _scalar
      N5 = 4.0*L2*L3
      N6 = 4.0*L3*L1
 
-     scalar1 = _scalar[v1]
-     scalar2 = _scalar[v2]
-     scalar3 = _scalar[v3]
-     scalar4 = _scalar[v4]
-     scalar5 = _scalar[v5]
-     scalar6 = _scalar[v6]
+     scalar1a = _scalar1[v1]
+     scalar1b = _scalar1[v2]
+     scalar1c = _scalar1[v3]
+     scalar1d = _scalar1[v4]
+     scalar1e = _scalar1[v5]
+     scalar1f = _scalar1[v6]
 
-     scalar[i] = N1*scalar1 + N2*scalar2 + N3*scalar3 + N4*scalar4 + N5*scalar5 + N6*scalar6
+     scalar2a = _scalar2[v1]
+     scalar2b = _scalar2[v2]
+     scalar2c = _scalar2[v3]
+     scalar2d = _scalar2[v4]
+     scalar2e = _scalar2[v5]
+     scalar2f = _scalar2[v6]
+
+     scalar1[i] = N1*scalar1a + N2*scalar1b + N3*scalar1c + N4*scalar1d + N5*scalar1e + N6*scalar1f
+
+     scalar2[i] = N1*scalar2a + N2*scalar2b + N3*scalar2c + N4*scalar2d + N5*scalar2e + N6*scalar2f
 
      # Interpolation limits
-     scalar_limits = [scalar1,scalar2,scalar3,scalar4,scalar5,scalar6]
-     if scalar[i] < min(scalar_limits):
-      scalar[i] = min(scalar_limits)
+     scalar1_limits = [scalar1a,scalar1b,scalar1c,scalar1d,scalar1e,scalar1f]
+     scalar2_limits = [scalar2a,scalar2b,scalar2c,scalar2d,scalar2e,scalar2f]
+     if scalar1[i] < min(scalar1_limits):
+      scalar1[i] = min(scalar1_limits)
+      if scalar2[i] < min(scalar2_limits): 
+       scalar2[i] = min(scalar2_limits)
 
-     elif scalar[i] > max(scalar_limits):
-      scalar[i] = max(scalar_limits)
+     elif scalar1[i] > max(scalar1_limits):
+      scalar1[i] = max(scalar1_limits)
+      if scalar2[i] > max(scalar2_limits):
+       scalar2[i] = max(scalar2_limits)
+
+     elif scalar2[i] < min(scalar2_limits): 
+       scalar2[i] = min(scalar2_limits)
+
+     elif scalar2[i] > max(scalar2_limits):
+       scalar2[i] = max(scalar2_limits)
 
      breaking = 1
      break
@@ -968,13 +1003,14 @@ def Quad2D(_npoints, _neighbors_elements, _IEN, _xn, _yn, _vx, _vy, _dt, _scalar
 
     # outside domain
     if node == node1 and breaking == 0:
-     scalar[i] = _scalar[node]
+     scalar1[i] = _scalar1[node]
+     scalar2[i] = _scalar2[node]
      
      breaking = 1
      break
 
 
- return scalar
+ return scalar1, scalar2
 
 
 
