@@ -1,0 +1,53 @@
+                                 COPYRIGHT                                 
+ ========================================================================== 
+ This relatory was created by Leandro Marques at 2021-08-03 15:53:03.887653
+ e-mail: marquesleandro67@gmail.com 
+ Gesar Search Group 
+ State University of the Rio de Janeiro 
+ ========================================================================== 
+
+
+ Simulator Name: aleStent.py
+ Benchmark Problem: linear Stent
+ Scheme: Semi Lagrangian
+ Element Type: Quadratic Element
+ Gaussian Quadrature (Gauss Points): 12
+
+ ------------------------- 
+ PARAMETERS OF SIMULATION: 
+ ------------------------- 
+ Mesh: quadCurvedGeoStrut.msh
+ Number of nodes: 10611
+ Number of elements: 5098
+ Smallest edge length: 0.0267278
+ Time step: 0.1
+ Number of time iteration: 3
+ Reynolds number: 100.0
+ Schmidt number: 1.0
+
+
+ ------------ 
+ IMPORT MESH: 
+ ------------ 
+ time duration: 0.364 seconds
+
+ --------- 
+ ASSEMBLY: 
+ --------- 
+ time duration: 172.082 seconds
+
+ -------------------------------- 
+ INITIAL AND BOUNDARY CONDITIONS: 
+ -------------------------------- 
+ time duration: 16.434 seconds
+
+ ---------------------------- 
+ SOLVE THE LINEARS EQUATIONS: 
+ ---------------------------- 
+ time duration: 499.302 seconds
+
+ ------------ 
+ OBSERVATION: 
+ ------------ 
+mini
+
